@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { GoogleAuthProvider, getAuth, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, type User } from 'firebase/auth';
-import { doc, getFirestore, runTransaction } from 'firebase/firestore';
+import { deleteDoc, doc, getFirestore, runTransaction } from 'firebase/firestore';
 import { useSyncExternalStore } from 'react';
 import { useStore } from './store';
 import { mergeSave, type Save } from './sync';
@@ -99,3 +99,13 @@ export function startSync() {
 
 export const signIn = () => signInWithPopup(auth!, new GoogleAuthProvider());
 export const signOut = () => firebaseSignOut(auth!);
+
+/** Efface la sauvegarde distante puis déconnecte, sinon la prochaine synchro la recréerait. Les données locales restent. */
+export async function deleteCloudData() {
+  const uid = cloud.user?.uid;
+  if (!uid) return;
+  clearTimeout(timer);
+  await queue;
+  await deleteDoc(doc(db!, 'users', uid));
+  await firebaseSignOut(auth!);
+}
