@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { href } from '../router';
-import { cloudEnabled, signIn, signOut, useCloud } from '../store/cloud';
+import { cloudEnabled, deleteCloudData, signIn, signOut, useCloud } from '../store/cloud';
 import { useStore, type DiceMode, type Game, type Theme } from '../store/store';
 import { Frame, Segmented } from '../ui/common';
 import { Icon } from '../ui/Icon';
@@ -18,6 +18,16 @@ export function Settings() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [toDelete, setToDelete] = useState<Game | null>(null);
   const { user, status } = useCloud();
+  const [confirmCloudDelete, setConfirmCloudDelete] = useState(false);
+
+  const onDeleteCloud = async () => {
+    try {
+      await deleteCloudData();
+      showToast('Données cloud supprimées, vos parties restent sur cet appareil');
+    } catch {
+      showToast('Suppression impossible, réessayez avec une connexion');
+    }
+  };
 
   const onSignIn = async () => {
     try {
@@ -124,6 +134,9 @@ export function Settings() {
               <button type="button" className="btn" style={{ marginTop: 8 }} onClick={() => signOut()}>
                 Se déconnecter
               </button>
+              <button type="button" className="btn" style={{ marginTop: 8 }} onClick={() => setConfirmCloudDelete(true)}>
+                <Icon name="trash" /> Supprimer mes données cloud
+              </button>
             </>
           ) : (
             <>
@@ -166,6 +179,16 @@ export function Settings() {
             ))}
           </ul>
         </Frame>
+      )}
+
+      {confirmCloudDelete && (
+        <Confirm
+          title="Supprimer vos données cloud ?"
+          message="Vos parties et succès seront effacés de Firebase et vous serez déconnecté. Ils restent sur cet appareil, mais les autres appareils ne seront plus synchronisés."
+          action="Supprimer"
+          onConfirm={onDeleteCloud}
+          onClose={() => setConfirmCloudDelete(false)}
+        />
       )}
 
       {toDelete && (
