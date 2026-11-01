@@ -18,7 +18,7 @@ export function Creation() {
   const [book, setBook] = useState<BookConfig | null>(available.length === 1 ? available[0] : null);
 
   return (
-    <main className="page">
+    <main className="page screen">
       <div className="row">
         <a className="icon-btn" href={href({ name: 'home' })} aria-label="Retour">
           <Icon name="back" />
@@ -76,7 +76,7 @@ function ItemPicker({ book }: { book: BookConfig }) {
                   <button
                     key={item.id}
                     type="button"
-                    className="frame thin item-card"
+                    className="frame item-card"
                     aria-pressed={on}
                     disabled={!on && picked.length >= 3}
                     onClick={() => toggle(item.id)}

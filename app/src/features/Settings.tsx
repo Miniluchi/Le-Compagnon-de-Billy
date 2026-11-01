@@ -37,7 +37,7 @@ export function Settings() {
   };
 
   return (
-    <main className="page">
+    <main className="page screen">
       <div className="row">
         <a className="icon-btn" href={href({ name: 'home' })} aria-label="Retour">
           <Icon name="back" />

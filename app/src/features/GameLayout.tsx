@@ -39,7 +39,7 @@ export function GameLayout({ id, tab }: { id: string; tab: Tab }) {
   return (
     <>
       <StatusBar game={game} />
-      <main className="page with-tabs">
+      <main key={tab} className="page with-tabs screen">
         {tab === 'aventure' && <Adventure game={game} />}
         {tab === 'billy' && <BillySheet game={game} />}
         {tab === 'combat' && <CombatScreen game={game} />}
@@ -49,7 +49,9 @@ export function GameLayout({ id, tab }: { id: string; tab: Tab }) {
       <nav className="tabs" aria-label="Sections de la partie">
         {TABS.map(t => (
           <a key={t.id} className="tab" href={href({ name: 'game', id, tab: t.id })} aria-current={t.id === tab ? 'page' : undefined}>
-            <Icon name={t.icon} />
+            <span className="tab-icon">
+              <Icon name={t.icon} />
+            </span>
             {t.id === 'combat' && game.combat && <span className="dot" aria-label="Combat en cours" />}
             {t.label}
           </a>

@@ -114,15 +114,3 @@ export function Toast() {
     </div>
   );
 }
-
-/** Filtre SVG qui donne aux cadres l'aspect d'un trait d'encre irrégulier. */
-export function InkFilter() {
-  return (
-    <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden>
-      <filter id="ink-edge">
-        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" />
-        <feDisplacementMap in="SourceGraphic" scale="3.5" />
-      </filter>
-    </svg>
-  );
-}

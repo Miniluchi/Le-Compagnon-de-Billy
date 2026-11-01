@@ -5,7 +5,7 @@ import { Home } from './features/Home';
 import { Settings } from './features/Settings';
 import { navigate, useRoute } from './router';
 import { useStore } from './store/store';
-import { InkFilter, Toast } from './ui/common';
+import { Toast } from './ui/common';
 
 export default function App() {
   const route = useRoute();
@@ -31,7 +31,6 @@ export default function App() {
 
   return (
     <div className={`app ${route.name}`}>
-      <InkFilter />
       {route.name === 'home' && <Home />}
       {route.name === 'new' && <Creation />}
       {route.name === 'settings' && <Settings />}

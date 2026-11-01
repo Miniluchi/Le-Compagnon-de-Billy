@@ -121,7 +121,7 @@ function CombatSetup({ game }: { game: Game }) {
             <Stepper value={companions} onChange={setCompanions} label="Habileté des compagnons" min={0} />
           </Frame>
 
-          <details className="frame thin">
+          <details className="frame">
             <summary className="label" style={{ minHeight: 32, cursor: 'pointer' }}>
               Modificateurs du chapitre (surnombre…)
             </summary>
@@ -353,7 +353,7 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
         </div>
 
         {!over && (
-          <details className="frame thin">
+          <details className="frame">
             <summary className="label" style={{ minHeight: 32, cursor: 'pointer' }}>
               Compagnons et modificateurs
             </summary>
@@ -371,7 +371,7 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
         )}
 
         {combat.log.length > 0 && (
-          <details className="frame thin log">
+          <details className="frame log">
             <summary className="label" style={{ minHeight: 32, cursor: 'pointer' }}>
               Journal du combat ({combat.log.length} tours)
             </summary>

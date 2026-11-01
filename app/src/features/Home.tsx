@@ -9,7 +9,7 @@ export function Home() {
   const list = Object.values(games).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
   return (
-    <main className="page">
+    <main className="page screen">
       <div className="row spread">
         <span />
         <a className="icon-btn" href={href({ name: 'settings' })} aria-label="Réglages">
