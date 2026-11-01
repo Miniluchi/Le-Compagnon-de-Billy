@@ -474,29 +474,6 @@ h3 {
   width: 100%;
 }
 
-.chapter-trail {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-}
-
-.chip {
-  min-height: 36px;
-  min-width: 44px;
-  padding: 0 12px;
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  color: var(--ink-soft);
-  transition: background-color 160ms ease;
-}
-
-.chip:active {
-  background: color-mix(in srgb, var(--ember) 18%, transparent);
-}
-
 /* ---------- Jauges PV / CHANCE ---------- */
 
 .gauge-value {

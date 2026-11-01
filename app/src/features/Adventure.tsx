@@ -23,7 +23,6 @@ export function Adventure({ game }: { game: Game }) {
     update(game.id, `Chapitre ${n}`, g => ({ ...g, chapters: [n, ...g.chapters].slice(0, 200), chapterDone: false }), { toast: false });
 
   const current = game.chapters[0];
-  const trail = game.chapters.slice(1, 13);
 
   return (
     <>
@@ -81,18 +80,6 @@ export function Adventure({ game }: { game: Game }) {
             <button type="button" className="btn" onClick={() => setPad('chapter')}>
               Aller au chapitre…
             </button>
-            {trail.length > 0 && (
-              <div className="stack" style={{ alignItems: 'center', marginTop: 8 }}>
-                <span className="small muted">Chapitres précédents, touchez pour y revenir</span>
-                <div className="chapter-trail">
-                  {trail.map((c, i) => (
-                    <button key={`${c}-${i}`} type="button" className="chip" onClick={() => goToChapter(c)}>
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </Frame>
 
           <Frame className="pv" title="Points de vie">

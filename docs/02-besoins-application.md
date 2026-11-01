@@ -88,7 +88,7 @@ Priorités : **M** = indispensable (MVP), **S** = souhaitable, **C** = confort.
 | F4.1 | PV et CHANCE en **jauges** avec boutons −/+ et saisie rapide (−3, +5…), bornés à 0 et au max. | M |
 | F4.2 | Soin « naturel » : bouton dédié qui **double** automatiquement le soin si Billy a le KIT DE SOIN. | S |
 | F4.3 | Compteurs propres au livre, pilotés par sa configuration. FCDN : GLOIRE et RICHESSE (pistes de 13 cases dans le livre, sans blocage au-delà). | M |
-| F4.4 | **Chapitre courant** : saisie via un pavé numérique plein écran, historique cliquable pour revenir en arrière. | M |
+| F4.4 | **Chapitre courant** : saisie via un pavé numérique plein écran, et indication « À lire / Déjà lu » pour savoir où reprendre. Pas de retour aux chapitres précédents. | M |
 | F4.5 | Listes **Objets récupérés** et **Notes d'aventure** : ajout, édition et suppression via des gestes ou boutons visibles (pas de clic droit). | M |
 | F4.6 | **Mort de Billy** (PV = 0) : écran dédié, avec choix entre recommencer (nouveau Billy) et revenir au dernier chapitre (annulation). | S |
 
