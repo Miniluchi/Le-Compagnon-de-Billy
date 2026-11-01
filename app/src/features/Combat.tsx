@@ -44,23 +44,24 @@ export function CombatScreen({ game }: { game: Game }) {
 // Préparation
 // ---------------------------------------------------------------------------
 
-const newFoe = (n: number): Foe => ({ name: n === 1 ? 'Adversaire' : `Adversaire ${n}`, pv: 8, hab: 5, arm: 0, deg: 0 });
+// Le livre présente toujours un seul adversaire : un groupe (« Horde de gobelins ») a ses propres stats.
+const NEW_FOE: Foe = { name: 'Adversaire', pv: 8, hab: 5, arm: 0, deg: 0 };
 
 function CombatSetup({ game }: { game: Game }) {
   const { book, base } = useBilly(game);
   const update = useStore(s => s.update);
-  const [foes, setFoes] = useState<Foe[]>([newFoe(1)]);
+  const [foe, setFoe] = useState<Foe>(NEW_FOE);
   const [companions, setCompanions] = useState(0);
   const [mods, setMods] = useState<CombatMods>(NO_MODS);
 
   const ctx: CombatCtx = { book, base };
-  const draft = { foes, foeIndex: 0, mods, companions } as CombatState;
+  const draft = { foes: [foe], foeIndex: 0, mods, companions } as CombatState;
   const diff = habDiff(ctx, draft);
 
-  const setFoe = (i: number, patch: Partial<Foe>) => setFoes(f => f.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+  const patchFoe = (patch: Partial<Foe>) => setFoe(f => ({ ...f, ...patch }));
 
   const start = () =>
-    update(game.id, 'Combat commencé', g => ({ ...g, combat: startCombat(ctx, foes, companions, mods) }), { toast: false });
+    update(game.id, 'Combat commencé', g => ({ ...g, combat: startCombat(ctx, [foe], companions, mods) }), { toast: false });
 
   return (
     <>
@@ -69,49 +70,29 @@ function CombatSetup({ game }: { game: Game }) {
 
       <div className="cols">
         <div className="col">
-          {foes.map((foe, i) => (
-            <Frame key={i}>
-              <div className="row" style={{ marginBottom: 10 }}>
-                <input
-                  className="input"
-                  value={foe.name}
-                  onChange={e => setFoe(i, { name: e.target.value })}
-                  aria-label="Nom de l'adversaire"
-                />
-                {foes.length > 1 && (
-                  <button
-                    type="button"
-                    className="icon-btn"
-                    aria-label={`Retirer ${foe.name}`}
-                    onClick={() => setFoes(f => f.filter((_, j) => j !== i))}
-                  >
-                    <Icon name="trash" />
-                  </button>
-                )}
-              </div>
-              <div className="grid-2">
-                <Field label="PV">
-                  <Stepper value={foe.pv} onChange={pv => setFoe(i, { pv })} label="PV" min={1} />
-                </Field>
-                <Field label="Habileté">
-                  <Stepper value={foe.hab} onChange={hab => setFoe(i, { hab })} label="Habileté" min={0} />
-                </Field>
-                <Field label="Armure">
-                  <Stepper value={foe.arm} onChange={arm => setFoe(i, { arm })} label="Armure" min={0} />
-                </Field>
-                <Field label="Dégâts">
-                  <Stepper value={foe.deg} onChange={deg => setFoe(i, { deg })} label="Dégâts" min={-5} />
-                </Field>
-              </div>
-            </Frame>
-          ))}
-          <button
-            type="button"
-            className="btn block"
-            onClick={() => setFoes(f => [...f, { ...newFoe(f.length + 1), ...f.at(-1), name: `Adversaire ${f.length + 1}` }])}
-          >
-            <Icon name="plus" /> Adversaire suivant
-          </button>
+          <Frame>
+            <input
+              className="input"
+              style={{ marginBottom: 10 }}
+              value={foe.name}
+              onChange={e => patchFoe({ name: e.target.value })}
+              aria-label="Nom de l'adversaire"
+            />
+            <div className="grid-2">
+              <Field label="PV">
+                <Stepper value={foe.pv} onChange={pv => patchFoe({ pv })} label="PV" min={1} />
+              </Field>
+              <Field label="Habileté">
+                <Stepper value={foe.hab} onChange={hab => patchFoe({ hab })} label="Habileté" min={0} />
+              </Field>
+              <Field label="Armure">
+                <Stepper value={foe.arm} onChange={arm => patchFoe({ arm })} label="Armure" min={0} />
+              </Field>
+              <Field label="Dégâts">
+                <Stepper value={foe.deg} onChange={deg => patchFoe({ deg })} label="Dégâts" min={-5} />
+              </Field>
+            </div>
+          </Frame>
         </div>
         <div className="col">
           <Frame title="Compagnons">
@@ -130,7 +111,7 @@ function CombatSetup({ game }: { game: Game }) {
 
           <SituationBanner ctx={ctx} combat={draft} />
 
-          <button type="button" className="btn primary block" onClick={start} disabled={foes.some(f => !f.name.trim())}>
+          <button type="button" className="btn primary block" onClick={start} disabled={!foe.name.trim()}>
             Commencer le combat
           </button>
           {base.character === 'PRUDENT' && (

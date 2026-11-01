@@ -113,7 +113,7 @@ Priorités : **M** = indispensable (MVP), **S** = souhaitable, **C** = confort.
 | F6.9 | **PRUDENT uniquement** : bouton « Fuir » (coût selon la table, désactivé si CHANCE < coût) ; « Coup chanceux » (−1 CHANCE ; dégâts finaux ×2 en cas de réussite, 0 en cas d'échec) ; proposition automatique de **survie miraculeuse** (coût 1, 2, 3…) quand un coup est mortel. | M |
 | F6.10 | **Journal de combat** (tour par tour) et **annuler le dernier tour**. | S |
 | F6.11 | **PV de Billy et CHANCE persistés à chaque tour** : quitter l'appli ou recharger ne perd rien, et le combat en cours est restauré. | M |
-| F6.12 | Combat contre **plusieurs adversaires** à la suite (file d'adversaires), ex. « 3 gobelins ». | S |
+| F6.12 | ~~Combat contre plusieurs adversaires à la suite~~ : abandonné. Le livre présente toujours un seul adversaire, un groupe (« Horde de gobelins ») ayant ses propres stats ; le surnombre se règle avec les modificateurs du chapitre. | — |
 | F6.13 | Dommages entre les tours (acide, poison…) : saisie manuelle, non plafonnée par PAYSAN. | C |
 | F6.14 | Ajustement manuel des PV des deux camps en cours de combat. | M |
 
