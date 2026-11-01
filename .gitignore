@@ -1,0 +1,8 @@
+# Contenu du livre (droits d'auteur) et ancien projet : jamais publiés
+photos livre/
+FCDN/
+
+node_modules/
+dist/
+*.local
+.DS_Store
