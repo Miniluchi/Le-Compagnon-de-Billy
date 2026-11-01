@@ -1,8 +1,9 @@
-import { getBook } from '../books';
+import { BOOKS, getBook } from '../books';
 import { computeBilly } from '../engine/stats';
 import { href } from '../router';
 import { useStore, type Game } from '../store/store';
 import { Icon } from '../ui/Icon';
+import { AchievementsLink } from './Achievements';
 
 export function Home() {
   const games = useStore(s => s.games);
@@ -27,6 +28,9 @@ export function Home() {
           <a className="btn primary block" href={href({ name: 'new' })}>
             <Icon name="plus" /> Créer un Billy
           </a>
+          {BOOKS.filter(b => b.available).map(b => (
+            <AchievementsLink key={b.id} bookId={b.id} />
+          ))}
         </div>
 
         {list.length === 0 && (
@@ -66,7 +70,8 @@ function GameCard({ game }: { game: Game }) {
         {game.chapters[0] ?? '–'}
       </span>
       <span className="small muted">
-        {book.characters[character].label}, {dead ? 'mort' : `${game.pv}/${stats.pvMax.total} PV`}. {book.title}
+        {book.characters[character].label}, {dead ? 'mort' : `${game.pv}/${stats.pvMax.total} PV`}
+        {game.chapters[0] !== undefined && (game.chapterDone ? ', chapitre lu' : ', chapitre à lire')}. {book.title}
       </span>
     </a>
   );

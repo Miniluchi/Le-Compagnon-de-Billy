@@ -10,13 +10,15 @@ export function Settings() {
   const setSettings = useStore(s => s.setSettings);
   const games = useStore(s => s.games);
   const importGames = useStore(s => s.importGames);
+  const achievements = useStore(s => s.achievements);
+  const importAchievements = useStore(s => s.importAchievements);
   const deleteGame = useStore(s => s.deleteGame);
   const showToast = useStore(s => s.showToast);
   const fileRef = useRef<HTMLInputElement>(null);
   const [toDelete, setToDelete] = useState<Game | null>(null);
 
   const exportAll = () => {
-    const blob = new Blob([JSON.stringify({ app: 'billyhelper', version: 1, games: Object.values(games) }, null, 2)], {
+    const blob = new Blob([JSON.stringify({ app: 'billyhelper', version: 1, games: Object.values(games), achievements }, null, 2)], {
       type: 'application/json',
     });
     const a = document.createElement('a');
@@ -30,7 +32,15 @@ export function Settings() {
     try {
       const data = JSON.parse(await file.text());
       const count = importGames(Array.isArray(data?.games) ? data.games : []);
-      showToast(count ? `${count} partie(s) importée(s)` : 'Aucune partie valide dans ce fichier');
+      const hasAchievements = !!data?.achievements && typeof data.achievements === 'object';
+      if (hasAchievements) importAchievements(data.achievements);
+      showToast(
+        count
+          ? `${count} partie(s) importée(s)${hasAchievements ? ', succès compris' : ''}`
+          : hasAchievements
+            ? 'Succès importés'
+            : 'Aucune partie valide dans ce fichier',
+      );
     } catch {
       showToast('Fichier illisible : choisissez un export BillyHelper (.json)');
     }
@@ -78,9 +88,16 @@ export function Settings() {
       </Frame>
 
       <Frame title="Sauvegarde">
-        <p className="small muted">Vos parties restent sur cet appareil. Exportez-les pour les garder ou changer de téléphone.</p>
+        <p className="small muted">
+          Vos parties et vos succès restent sur cet appareil. Exportez-les pour les garder ou changer de téléphone.
+        </p>
         <div className="grid-2" style={{ marginTop: 12 }}>
-          <button type="button" className="btn" onClick={exportAll} disabled={Object.keys(games).length === 0}>
+          <button
+            type="button"
+            className="btn"
+            onClick={exportAll}
+            disabled={Object.keys(games).length === 0 && Object.keys(achievements).length === 0}
+          >
             <Icon name="download" /> Exporter
           </button>
           <button type="button" className="btn" onClick={() => fileRef.current?.click()}>

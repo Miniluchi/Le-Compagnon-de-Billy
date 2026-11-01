@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { href } from '../router';
 import { useBilly } from '../store/derived';
 import { useStore, type Game } from '../store/store';
-import { Frame, Stepper, Track } from '../ui/common';
+import { Frame, Segmented, Stepper, Track } from '../ui/common';
 import { Icon } from '../ui/Icon';
 import { NumPad } from '../ui/NumPad';
+import { AchievementsLink } from './Achievements';
 
 type PadMode = 'chapter' | 'damage' | 'heal' | 'natural';
 
@@ -19,7 +20,7 @@ export function Adventure({ game }: { game: Game }) {
   const setChance = (chance: number, label: string) =>
     update(game.id, label, g => ({ ...g, chance: Math.max(0, Math.min(chanceMax, chance)) }));
   const goToChapter = (n: number) =>
-    update(game.id, `Chapitre ${n}`, g => ({ ...g, chapters: [n, ...g.chapters].slice(0, 200) }), { toast: false });
+    update(game.id, `Chapitre ${n}`, g => ({ ...g, chapters: [n, ...g.chapters].slice(0, 200), chapterDone: false }), { toast: false });
 
   const current = game.chapters[0];
   const trail = game.chapters.slice(1, 13);
@@ -52,6 +53,31 @@ export function Adventure({ game }: { game: Game }) {
             >
               {current ?? '–'}
             </button>
+            {current !== undefined && (
+              <div className="chapter-progress">
+                <Segmented<'todo' | 'done'>
+                  label={`Avancement dans le chapitre ${current}`}
+                  value={game.chapterDone ? 'done' : 'todo'}
+                  onChange={v =>
+                    update(
+                      game.id,
+                      v === 'done' ? `Chapitre ${current} lu` : `Chapitre ${current} à lire`,
+                      g => ({ ...g, chapterDone: v === 'done' }),
+                      {
+                        toast: false,
+                      },
+                    )
+                  }
+                  options={[
+                    { value: 'todo', label: 'À lire' },
+                    { value: 'done', label: 'Déjà lu' },
+                  ]}
+                />
+                <span className="small muted">
+                  {game.chapterDone ? 'Il reste à choisir la suite.' : 'Reprenez la lecture au début de ce chapitre.'}
+                </span>
+              </div>
+            )}
             <button type="button" className="btn" onClick={() => setPad('chapter')}>
               Aller au chapitre…
             </button>
@@ -135,6 +161,7 @@ export function Adventure({ game }: { game: Game }) {
             placeholder="Ex. : le mot de passe est « Gratin »"
             onChange={(notes, label) => update(game.id, label, g => ({ ...g, notes }))}
           />
+          <AchievementsLink bookId={game.bookId} />
         </div>
       </div>
 

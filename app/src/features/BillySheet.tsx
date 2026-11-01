@@ -116,36 +116,32 @@ function secondaryDetail(stat: StatKey, d: StatBreakdown): string {
 }
 
 function StatFrame({ stat, data, onAdd }: { stat: StatKey; data: StatBreakdown; onAdd: () => void }) {
+  // Toujours les mêmes lignes, pour que toutes les tuiles aient la même forme.
   const rows: [string, number][] = [
     ['Base', data.base],
-    ['Carac.', data.carac],
+    ['Caractère', data.carac],
     ['Matériel', data.materiel],
+    ['Gains', data.bonus],
   ];
-  if (data.bonus) rows.push(['Gains', data.bonus]);
   return (
-    <Frame title={STAT_LABELS[stat]}>
-      <div className="row spread" style={{ alignItems: 'flex-end' }}>
-        <div className="breakdown">
-          {rows.map(([label, value]) => (
-            <span key={label} style={{ display: 'contents' }}>
-              <span>{label}</span>
-              <span>{label === 'Base' ? value : signed(value)}</span>
-            </span>
-          ))}
-        </div>
-        <span className="figure" style={{ fontSize: 46 }}>
-          {data.total}
-        </span>
+    <section className="frame stat-tile">
+      <div className="stat-tile-head">
+        <h2 className="heading">{STAT_LABELS[stat]}</h2>
+        <span className="figure">{data.total}</span>
       </div>
-      {stat === 'adr' && (
-        <p className="small muted" style={{ marginTop: 6 }}>
-          {data.capped ? `Plafonnée à ${ADR_MAX}.` : `Ne peut dépasser ${ADR_MAX}.`}
-        </p>
-      )}
-      <button type="button" className="btn ghost block" onClick={onAdd} style={{ marginTop: 4, minHeight: 40 }}>
+      <div className="breakdown">
+        {rows.map(([label, value]) => (
+          <span key={label} style={{ display: 'contents' }}>
+            <span>{label}</span>
+            <span>{label === 'Base' ? value : signed(value)}</span>
+          </span>
+        ))}
+      </div>
+      {stat === 'adr' && <p className="small muted">{data.capped ? `Plafonnée à ${ADR_MAX}.` : `Ne peut dépasser ${ADR_MAX}.`}</p>}
+      <button type="button" className="btn ghost block stat-tile-add" onClick={onAdd}>
         <Icon name="plus" size={20} /> Gain
       </button>
-    </Frame>
+    </section>
   );
 }
 

@@ -1,4 +1,5 @@
 import type { BookConfig, TableCell } from './types';
+import { FCDN_ACHIEVEMENTS, FCDN_FINAL_ACHIEVEMENT } from './fcdn-achievements';
 
 // Table recopiée de la photo du livre (docs/01-regles-du-jeu.md §6.2).
 // Lignes : dé 1 à 6. Colonnes : différence d'HABILETÉ de -7 à +7.
@@ -99,4 +100,6 @@ export const FCDN: BookConfig = {
     { id: 'gloire', label: 'Gloire', track: 13 },
     { id: 'richesse', label: 'Richesse', track: 13 },
   ],
+  achievements: FCDN_ACHIEVEMENTS,
+  finalAchievement: FCDN_FINAL_ACHIEVEMENT,
 };

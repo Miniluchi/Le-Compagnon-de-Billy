@@ -15,6 +15,7 @@ const PATHS = {
   trash: 'M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13',
   download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
   upload: 'M12 15V4M7 9l5-5 5 5M5 20h14',
+  trophy: 'M8 4h8v5a4 4 0 01-8 0zM8 6H5a3 3 0 003 4M16 6h3a3 3 0 01-3 4M12 13v4M9 20h6M10 17h4',
   heal: 'M12 20s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.5-7 10-7 10zM12 9.5v5M9.5 12h5',
 } as const;
 

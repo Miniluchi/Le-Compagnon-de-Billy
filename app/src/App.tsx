@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Achievements } from './features/Achievements';
 import { Creation } from './features/Creation';
 import { GameLayout } from './features/GameLayout';
 import { Home } from './features/Home';
@@ -34,6 +35,7 @@ export default function App() {
       {route.name === 'home' && <Home />}
       {route.name === 'new' && <Creation />}
       {route.name === 'settings' && <Settings />}
+      {route.name === 'achievements' && <Achievements bookId={route.bookId} />}
       {route.name === 'game' && <GameLayout id={route.id} tab={route.tab} />}
       <Toast />
     </div>

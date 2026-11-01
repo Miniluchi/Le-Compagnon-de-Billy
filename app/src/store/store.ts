@@ -19,6 +19,8 @@ export interface Game {
   notes: string[];
   /** Chapitre courant en premier, puis l'historique. */
   chapters: number[];
+  /** Le chapitre courant a déjà été lu : il reste à faire le choix de la suite. */
+  chapterDone?: boolean;
   combat?: CombatState;
 }
 
@@ -31,15 +33,22 @@ export interface Settings {
   vibrate: boolean;
 }
 
+/** Succès obtenus : identifiant du succès → date au format AAAA-MM-JJ. */
+export type Unlocked = Record<string, string>;
+
 interface UndoEntry {
   gameId: string;
   label: string;
   snapshot: Game | null;
+  /** Annulation d'un succès : l'état précédent des succès du livre. */
+  achievements?: { bookId: string; snapshot: Unlocked };
 }
 
 interface State {
   games: Record<string, Game>;
   lastGameId?: string;
+  /** Succès par livre, communs à toutes les parties. */
+  achievements: Record<string, Unlocked>;
   settings: Settings;
   undo: UndoEntry[];
   toast?: { id: number; message: string; undoable: boolean };
@@ -50,6 +59,9 @@ interface State {
   /** Modifie une partie et empile l'état précédent pour pouvoir annuler. */
   update: (id: string, label: string, fn: (g: Game) => Game, opts?: { toast?: boolean }) => void;
   undoLast: () => void;
+  /** Débloque un succès à la date donnée, ou le retire avec `null`. */
+  setAchievement: (bookId: string, id: string, date: string | null, label: string) => void;
+  importAchievements: (achievements: Record<string, Unlocked>) => void;
   setSettings: (s: Partial<Settings>) => void;
   showToast: (message: string) => void;
   dismissToast: () => void;
@@ -65,6 +77,7 @@ export const useStore = create<State>()(
   persist(
     (set, get) => ({
       games: {},
+      achievements: {},
       settings: { theme: 'system', diceMode: 'virtual', vibrate: true },
       undo: [],
 
@@ -121,6 +134,15 @@ export const useStore = create<State>()(
 
       undoLast: () => {
         const entry = get().undo.at(-1);
+        if (entry?.achievements) {
+          const { bookId, snapshot } = entry.achievements;
+          set(s => ({
+            achievements: { ...s.achievements, [bookId]: snapshot },
+            undo: s.undo.slice(0, -1),
+            toast: { id: ++toastSeq, message: `Annulé : ${entry.label}`, undoable: false },
+          }));
+          return;
+        }
         if (!entry?.snapshot) return;
         set(s => ({
           games: { ...s.games, [entry.gameId]: entry.snapshot! },
@@ -128,6 +150,30 @@ export const useStore = create<State>()(
           toast: { id: ++toastSeq, message: `Annulé : ${entry.label}`, undoable: false },
         }));
       },
+
+      setAchievement: (bookId, id, date, label) => {
+        const previous = get().achievements[bookId] ?? {};
+        const next = { ...previous };
+        if (date) next[id] = date;
+        else delete next[id];
+        set(s => ({
+          achievements: { ...s.achievements, [bookId]: next },
+          undo: [...s.undo, { gameId: '', label, snapshot: null, achievements: { bookId, snapshot: previous } }].slice(-UNDO_LIMIT),
+          toast: { id: ++toastSeq, message: label, undoable: true },
+        }));
+      },
+
+      // On garde la date déjà connue : un import ne fait qu'ajouter des succès.
+      importAchievements: imported =>
+        set(s => {
+          const achievements = { ...s.achievements };
+          for (const [bookId, unlocked] of Object.entries(imported ?? {})) {
+            if (!unlocked || typeof unlocked !== 'object') continue;
+            const valid = Object.entries(unlocked).filter(([, d]) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d));
+            achievements[bookId] = { ...Object.fromEntries(valid), ...achievements[bookId] };
+          }
+          return { achievements };
+        }),
 
       setSettings: settings => set(s => ({ settings: { ...s.settings, ...settings } })),
       showToast: message => set({ toast: { id: ++toastSeq, message, undoable: false } }),
@@ -142,7 +188,13 @@ export const useStore = create<State>()(
     {
       name: 'billyhelper',
       version: 1,
-      partialize: s => ({ games: s.games, lastGameId: s.lastGameId, settings: s.settings, undo: s.undo.slice(-10) }),
+      partialize: s => ({
+        games: s.games,
+        lastGameId: s.lastGameId,
+        achievements: s.achievements,
+        settings: s.settings,
+        undo: s.undo.slice(-10),
+      }),
     },
   ),
 );

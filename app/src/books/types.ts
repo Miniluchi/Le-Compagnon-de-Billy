@@ -35,6 +35,17 @@ export interface Counter {
   track: number;
 }
 
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface AchievementGroup {
+  title: string;
+  items: Achievement[];
+}
+
 export interface BookConfig {
   id: string;
   tome: number;
@@ -48,6 +59,10 @@ export interface BookConfig {
   /** Clé : différence d'HABILETÉ de -7 à 7. */
   fleeCost: Record<number, number>;
   counters: Counter[];
+  /** Succès listés en fin de livre. Ils valent pour le livre, pas pour une partie. */
+  achievements: AchievementGroup[];
+  /** Succès obtenu automatiquement quand tous les autres le sont. */
+  finalAchievement?: Achievement;
 }
 
 export interface UpcomingBook {
