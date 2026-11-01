@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { rollDie, type DieFace } from '../engine/rolls';
 import { useStore, vibrate } from '../store/store';
+import { Icon } from './Icon';
 
 const PIPS: Record<DieFace, [number, number][]> = {
   1: [[50, 50]],
@@ -47,12 +48,12 @@ export function DieFaceSvg({ face, size = 64, rolling = false }: { face?: DieFac
       aria-label={face ? `Dé : ${face}` : 'Dé pas encore lancé'}
     >
       <rect x="4" y="4" width="92" height="92" rx="16" fill="none" stroke="currentColor" strokeWidth="6" />
-      {face && PIPS[face].map(([cx, cy], i) => <circle key={i} cx={cx} cy={cy} r="8.5" fill="currentColor" />)}
-      {!face && (
-        <text x="50" y="64" textAnchor="middle" fontSize="44" fill="currentColor" opacity="0.35" fontFamily="serif">
-          ?
-        </text>
-      )}
+      {/* Pas encore lancé : une face estompée plutôt qu'un point d'interrogation. */}
+      <g opacity={face ? 1 : 0.18}>
+        {PIPS[face ?? 5].map(([cx, cy], i) => (
+          <circle key={i} cx={cx} cy={cy} r="8.5" fill="currentColor" />
+        ))}
+      </g>
     </svg>
   );
 }
@@ -120,7 +121,11 @@ export function DiceRoller({
 
   return (
     <button type="button" className={`btn block${primary ? ' primary' : ''}`} disabled={disabled || rolling} onClick={roll}>
-      <DieFaceSvg face={rolling ? undefined : (shown ?? face)} size={30} rolling={rolling} />
+      {rolling || shown || face ? (
+        <DieFaceSvg face={rolling ? 5 : (shown ?? face)} size={30} rolling={rolling} />
+      ) : (
+        <Icon name="die" size={26} />
+      )}
       {label}
     </button>
   );

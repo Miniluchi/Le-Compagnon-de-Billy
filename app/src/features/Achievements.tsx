@@ -198,7 +198,7 @@ export function AchievementsLink({ bookId }: { bookId: string }) {
           {count + (finalDate ? 1 : 0)} sur {total} obtenus
         </span>
       </span>
-      <Icon name="back" size={20} />
+      <Icon name="forward" size={20} />
     </a>
   );
 }

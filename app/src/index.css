@@ -1130,7 +1130,6 @@ details.rule ol {
 }
 
 .achievements-link > svg:last-child {
-  rotate: 180deg;
   color: var(--ink-soft);
 }
 
