@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { getBook } from '../books';
 import { computeBilly, type Bonus } from '../engine/stats';
 import type { CombatState } from '../engine/combat';
+import { isGame, validUnlocked, type Save } from './sync';
 
 export interface Game {
   id: string;
@@ -49,6 +50,8 @@ interface State {
   lastGameId?: string;
   /** Succès par livre, communs à toutes les parties. */
   achievements: Record<string, Unlocked>;
+  /** Parties supprimées, pour que la synchro ne les fasse pas revenir. */
+  deleted: Record<string, string>;
   settings: Settings;
   undo: UndoEntry[];
   toast?: { id: number; message: string; undoable: boolean };
@@ -66,6 +69,8 @@ interface State {
   showToast: (message: string) => void;
   dismissToast: () => void;
   importGames: (games: Game[]) => number;
+  /** Remplace les données partagées par le résultat d'une synchro, sans toast ni annulation. */
+  applySync: (save: Save) => void;
 }
 
 const UNDO_LIMIT = 40;
@@ -78,6 +83,7 @@ export const useStore = create<State>()(
     (set, get) => ({
       games: {},
       achievements: {},
+      deleted: {},
       settings: { theme: 'system', diceMode: 'virtual', vibrate: true },
       undo: [],
 
@@ -112,6 +118,7 @@ export const useStore = create<State>()(
           delete games[id];
           return {
             games,
+            deleted: { ...s.deleted, [id]: new Date().toISOString() },
             lastGameId: s.lastGameId === id ? undefined : s.lastGameId,
             undo: [...s.undo, { gameId: id, label: `Partie « ${game.name} » supprimée`, snapshot: game }].slice(-UNDO_LIMIT),
             toast: { id: ++toastSeq, message: `Partie « ${game.name} » supprimée`, undoable: true },
@@ -144,11 +151,16 @@ export const useStore = create<State>()(
           return;
         }
         if (!entry?.snapshot) return;
-        set(s => ({
-          games: { ...s.games, [entry.gameId]: entry.snapshot! },
-          undo: s.undo.slice(0, -1),
-          toast: { id: ++toastSeq, message: `Annulé : ${entry.label}`, undoable: false },
-        }));
+        set(s => {
+          const deleted = { ...s.deleted };
+          delete deleted[entry.gameId];
+          return {
+            games: { ...s.games, [entry.gameId]: entry.snapshot! },
+            deleted,
+            undo: s.undo.slice(0, -1),
+            toast: { id: ++toastSeq, message: `Annulé : ${entry.label}`, undoable: false },
+          };
+        });
       },
 
       setAchievement: (bookId, id, date, label) => {
@@ -168,9 +180,7 @@ export const useStore = create<State>()(
         set(s => {
           const achievements = { ...s.achievements };
           for (const [bookId, unlocked] of Object.entries(imported ?? {})) {
-            if (!unlocked || typeof unlocked !== 'object') continue;
-            const valid = Object.entries(unlocked).filter(([, d]) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d));
-            achievements[bookId] = { ...Object.fromEntries(valid), ...achievements[bookId] };
+            achievements[bookId] = { ...validUnlocked(unlocked), ...achievements[bookId] };
           }
           return { achievements };
         }),
@@ -180,10 +190,16 @@ export const useStore = create<State>()(
       dismissToast: () => set({ toast: undefined }),
 
       importGames: games => {
-        const valid = games.filter(g => g && typeof g.id === 'string' && typeof g.bookId === 'string' && Array.isArray(g.items));
-        set(s => ({ games: { ...s.games, ...Object.fromEntries(valid.map(g => [g.id, g])) } }));
+        const valid = games.filter(isGame);
+        // Une partie importée volontairement l'emporte sur une suppression passée.
+        set(s => ({
+          games: { ...s.games, ...Object.fromEntries(valid.map(g => [g.id, g])) },
+          deleted: Object.fromEntries(Object.entries(s.deleted).filter(([id]) => !valid.some(g => g.id === id))),
+        }));
         return valid.length;
       },
+
+      applySync: ({ games, achievements, deleted }) => set({ games, achievements, deleted }),
     }),
     {
       name: 'billyhelper',
@@ -192,6 +208,7 @@ export const useStore = create<State>()(
         games: s.games,
         lastGameId: s.lastGameId,
         achievements: s.achievements,
+        deleted: s.deleted,
         settings: s.settings,
         undo: s.undo.slice(-10),
       }),
