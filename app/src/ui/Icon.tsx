@@ -3,6 +3,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Cloud,
   Dices,
   Download,
   HeartPulse,
@@ -40,6 +41,7 @@ const ICONS = {
   upload: Upload,
   trophy: Trophy,
   heal: HeartPulse,
+  cloud: Cloud,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

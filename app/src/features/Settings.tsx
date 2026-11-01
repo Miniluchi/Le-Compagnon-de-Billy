@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { href } from '../router';
+import { cloudEnabled, signIn, signOut, useCloud } from '../store/cloud';
 import { useStore, type DiceMode, type Game, type Theme } from '../store/store';
 import { Frame, Segmented } from '../ui/common';
 import { Icon } from '../ui/Icon';
@@ -16,6 +17,15 @@ export function Settings() {
   const showToast = useStore(s => s.showToast);
   const fileRef = useRef<HTMLInputElement>(null);
   const [toDelete, setToDelete] = useState<Game | null>(null);
+  const { user, status } = useCloud();
+
+  const onSignIn = async () => {
+    try {
+      await signIn();
+    } catch {
+      showToast('Connexion annulée ou impossible');
+    }
+  };
 
   const exportAll = () => {
     const blob = new Blob([JSON.stringify({ app: 'billyhelper', version: 1, games: Object.values(games), achievements }, null, 2)], {
@@ -104,6 +114,32 @@ export function Settings() {
             <Icon name="upload" /> Importer
           </button>
         </div>
+        {cloudEnabled &&
+          (user ? (
+            <>
+              <p className="small" style={{ marginTop: 16 }}>
+                <Icon name="cloud" size={16} /> {user.email} ·{' '}
+                {status === 'error' ? 'Erreur de synchro' : status === 'syncing' ? 'Synchronisation…' : 'Synchronisé'}
+              </p>
+              <button type="button" className="btn" style={{ marginTop: 8 }} onClick={() => signOut()}>
+                Se déconnecter
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="small muted" style={{ marginTop: 16 }}>
+                Synchronisez vos parties entre vos appareils.
+              </p>
+              <button type="button" className="btn" style={{ marginTop: 8 }} onClick={onSignIn}>
+                <Icon name="cloud" /> Se connecter avec Google
+              </button>
+            </>
+          ))}
+        {cloudEnabled && (
+          <p className="small muted" style={{ marginTop: 8 }}>
+            Une fois connecté, vos parties et succès sont stockés sur Firebase (Google), liés à votre compte.
+          </p>
+        )}
         <input
           ref={fileRef}
           type="file"
