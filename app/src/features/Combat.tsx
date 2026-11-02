@@ -191,6 +191,7 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
   const { book, base, pvMax, chanceMax } = useBilly(game);
   const update = useStore(s => s.update);
   const undoLast = useStore(s => s.undoLast);
+  const lastUndo = useStore(s => s.undo.at(-1));
   const [quitting, setQuitting] = useState(false);
   const ctx: CombatCtx = { book, base };
   const foe = currentFoe(combat);
@@ -327,15 +328,23 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
           <RoundCard entry={combat.last} foeName={combat.last.foeName} />
         )}
 
-        <div className="grid-2">
-          <button type="button" className="btn" onClick={undoLast}>
-            <Icon name="undo" /> Annuler
+        <div className="stack">
+          <button type="button" className="btn" onClick={undoLast} disabled={lastUndo?.gameId !== game.id} style={{ minWidth: 0 }}>
+            <Icon name="undo" />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              Annuler{lastUndo?.gameId === game.id && ` : ${lastUndo.label}`}
+            </span>
           </button>
-          {!over && (
-            <button type="button" className="btn danger" onClick={() => setQuitting(true)}>
-              Abandonner
-            </button>
-          )}
+          {!over &&
+            (combat.log.length === 0 ? (
+              <button type="button" className="btn danger" onClick={() => end('Combat annulé')}>
+                Annuler le combat
+              </button>
+            ) : (
+              <button type="button" className="btn danger" onClick={() => setQuitting(true)}>
+                Quitter le combat
+              </button>
+            ))}
         </div>
 
         {combat.log.length > 0 && (
