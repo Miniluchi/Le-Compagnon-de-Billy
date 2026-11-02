@@ -211,6 +211,11 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
   const end = (label: string) => update(game.id, label, g => ({ ...g, combat: undefined }));
 
   const setPv = (pv: number) => update(game.id, 'PV ajustés', g => ({ ...g, pv: Math.max(0, Math.min(pvMax, pv)) }), { toast: false });
+  const setFoe = (patch: Partial<Foe>) =>
+    act('Stats adversaire', w => ({
+      ...w,
+      combat: { ...w.combat, foes: w.combat.foes.map((x, i) => (i === w.combat.foeIndex ? { ...x, ...patch } : x)) },
+    }));
   const setFoePv = (foePv: number) => act('PV adversaire ajustés', w => ({ ...w, combat: { ...w.combat, foePv: Math.max(0, foePv) } }));
 
   const hitDie = combat.phase === 'summary' || combat.phase === 'death-save' ? combat.last?.attackDie : combat.attackDie;
@@ -333,24 +338,6 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
           )}
         </div>
 
-        {!over && (
-          <details className="frame">
-            <summary className="label" style={{ minHeight: 32, cursor: 'pointer' }}>
-              Compagnons et modificateurs
-            </summary>
-            <div className="field" style={{ marginTop: 10 }}>
-              <span className="label">Habileté des compagnons</span>
-              <Stepper
-                value={combat.companions}
-                onChange={v => act('Compagnons', w => ({ ...w, combat: { ...w.combat, companions: v } }))}
-                label="Habileté des compagnons"
-                min={0}
-              />
-            </div>
-            <ModsEditor mods={combat.mods} onChange={m => act('Modificateurs', w => ({ ...w, combat: { ...w.combat, mods: m } }))} />
-          </details>
-        )}
-
         {combat.log.length > 0 && (
           <details className="frame log">
             <summary className="label" style={{ minHeight: 32, cursor: 'pointer' }}>
@@ -368,6 +355,41 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
                 </li>
               ))}
             </ol>
+          </details>
+        )}
+
+        {!over && (
+          <details className="frame">
+            <summary className="label" style={{ minHeight: 32, cursor: 'pointer' }}>
+              Ajuster les stats (Billy et adversaire)
+            </summary>
+            <p className="label" style={{ marginTop: 10 }}>
+              {foe.name}
+            </p>
+            <div className="grid-2" style={{ marginTop: 6 }}>
+              <Field label="Habileté">
+                <Stepper value={foe.hab} onChange={hab => setFoe({ hab })} label={`Habileté de ${foe.name}`} min={0} />
+              </Field>
+              <Field label="Armure">
+                <Stepper value={foe.arm} onChange={arm => setFoe({ arm })} label={`Armure de ${foe.name}`} min={0} />
+              </Field>
+              <Field label="Dégâts">
+                <Stepper value={foe.deg} onChange={deg => setFoe({ deg })} label={`Dégâts de ${foe.name}`} min={-5} />
+              </Field>
+            </div>
+            <p className="label" style={{ marginTop: 14 }}>
+              Billy
+            </p>
+            <div className="field" style={{ marginTop: 6 }}>
+              <span className="label">Habileté des compagnons</span>
+              <Stepper
+                value={combat.companions}
+                onChange={v => act('Compagnons', w => ({ ...w, combat: { ...w.combat, companions: v } }))}
+                label="Habileté des compagnons"
+                min={0}
+              />
+            </div>
+            <ModsEditor mods={combat.mods} onChange={m => act('Modificateurs', w => ({ ...w, combat: { ...w.combat, mods: m } }))} />
           </details>
         )}
       </div>
