@@ -270,9 +270,13 @@ function applyDomination(ctx: CombatCtx, combat: CombatState): CombatState {
     if (diff >= DOMINATION) {
       const name = currentFoe(c).name;
       c = nextFoe({ ...c, foePv: 0 });
-      c.notice = `Domination : ${name} est vaincu sans combattre.`;
+      c.notice = `Domination : ${name} vous jette un regard, fait ses calculs, et décide de faire le mort. Pour de vrai.`;
     } else if (diff <= -DOMINATION) {
-      return { ...c, phase: 'lost', notice: `Domination adverse : ${currentFoe(c).name} vous écrase.` };
+      return {
+        ...c,
+        phase: 'lost',
+        notice: `Domination adverse : ${currentFoe(c).name} vous a aplati avant que vous ayez fini de dégainer. On retrouvera vos bottes.`,
+      };
     } else break;
   }
   return c;
