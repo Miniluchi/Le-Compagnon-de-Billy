@@ -16,6 +16,7 @@ import {
   nextRound,
   NO_MODS,
   reroll,
+  restartRound,
   rollAttack,
   rollDodge,
   situationLabel,
@@ -61,7 +62,12 @@ function CombatSetup({ game }: { game: Game }) {
   const patchFoe = (patch: Partial<Foe>) => setFoe(f => ({ ...f, ...patch }));
 
   const start = () =>
-    update(game.id, 'Combat commencé', g => ({ ...g, combat: startCombat(ctx, [foe], companions, mods) }), { toast: false });
+    update(
+      game.id,
+      'Combat commencé',
+      g => ({ ...g, combat: { ...startCombat(ctx, [foe], companions, mods), before: { pv: g.pv, chance: g.chance } } }),
+      { toast: false },
+    );
 
   return (
     <>
@@ -142,7 +148,7 @@ const MOD_LABELS: [keyof CombatMods, string][] = [
   ['crit', 'Critique'],
 ];
 
-function ModsEditor({ mods, onChange }: { mods: CombatMods; onChange: (m: CombatMods) => void }) {
+function ModsEditor({ mods, onChange, extra }: { mods: CombatMods; onChange: (m: CombatMods) => void; extra?: React.ReactNode }) {
   return (
     <div className="grid-2" style={{ marginTop: 10 }}>
       {MOD_LABELS.map(([k, label]) => (
@@ -150,6 +156,7 @@ function ModsEditor({ mods, onChange }: { mods: CombatMods; onChange: (m: Combat
           <Stepper value={mods[k]} onChange={v => onChange({ ...mods, [k]: v })} label={`Modificateur ${label}`} min={-10} max={10} />
         </Field>
       ))}
+      {extra}
     </div>
   );
 }
@@ -190,8 +197,6 @@ function SituationBanner({ ctx, combat, hitDie }: { ctx: CombatCtx; combat: Comb
 function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
   const { book, base, pvMax, chanceMax } = useBilly(game);
   const update = useStore(s => s.update);
-  const undoLast = useStore(s => s.undoLast);
-  const lastUndo = useStore(s => s.undo.at(-1));
   const [quitting, setQuitting] = useState(false);
   const ctx: CombatCtx = { book, base };
   const foe = currentFoe(combat);
@@ -210,6 +215,14 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
     );
 
   const end = (label: string) => update(game.id, label, g => ({ ...g, combat: undefined }), { toast: false });
+  // Un combat d'avant cette version n'a pas `before` : on garde alors les PV et la chance actuels.
+  const cancel = () =>
+    update(
+      game.id,
+      'Combat annulé',
+      g => ({ ...g, pv: g.combat?.before?.pv ?? g.pv, chance: g.combat?.before?.chance ?? g.chance, combat: undefined }),
+      { toast: false },
+    );
 
   const setPv = (pv: number) => update(game.id, 'PV ajustés', g => ({ ...g, pv: Math.max(0, Math.min(pvMax, pv)) }), { toast: false });
   const setFoe = (patch: Partial<Foe>) =>
@@ -329,22 +342,16 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
         )}
 
         <div className="stack">
-          <button type="button" className="btn" onClick={undoLast} disabled={lastUndo?.gameId !== game.id} style={{ minWidth: 0 }}>
-            <Icon name="undo" />
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              Annuler{lastUndo?.gameId === game.id && ` : ${lastUndo.label}`}
-            </span>
-          </button>
-          {!over &&
-            (combat.log.length === 0 ? (
-              <button type="button" className="btn danger" onClick={() => end('Combat annulé')}>
-                Annuler le combat
-              </button>
-            ) : (
-              <button type="button" className="btn danger" onClick={() => setQuitting(true)}>
-                Quitter le combat
-              </button>
-            ))}
+          {combat.roundStart && combat.phase !== 'attack' && (
+            <button type="button" className="btn" onClick={() => act('Tour recommencé', restartRound)}>
+              <Icon name="undo" /> Recommencer le tour {combat.round}
+            </button>
+          )}
+          {!over && (
+            <button type="button" className="btn danger" onClick={() => (combat.log.length === 0 ? cancel() : setQuitting(true))}>
+              Annuler le combat
+            </button>
+          )}
         </div>
 
         {combat.log.length > 0 && (
@@ -372,43 +379,47 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
             <summary className="label" style={{ minHeight: 32, cursor: 'pointer' }}>
               Ajuster les stats (Billy et adversaire)
             </summary>
-            <p className="label" style={{ marginTop: 10 }}>
-              {foe.name}
-            </p>
-            <div className="grid-2" style={{ marginTop: 6 }}>
+            <h3 className="heading" style={{ marginTop: 14 }}>
+              Adversaire : {foe.name}
+            </h3>
+            <div className="grid-2" style={{ marginTop: 10 }}>
               <Field label="Habileté">
                 <Stepper value={foe.hab} onChange={hab => setFoe({ hab })} label={`Habileté de ${foe.name}`} min={0} />
-              </Field>
-              <Field label="Armure">
-                <Stepper value={foe.arm} onChange={arm => setFoe({ arm })} label={`Armure de ${foe.name}`} min={0} />
               </Field>
               <Field label="Dégâts">
                 <Stepper value={foe.deg} onChange={deg => setFoe({ deg })} label={`Dégâts de ${foe.name}`} min={-5} />
               </Field>
+              <Field label="Armure">
+                <Stepper value={foe.arm} onChange={arm => setFoe({ arm })} label={`Armure de ${foe.name}`} min={0} />
+              </Field>
             </div>
-            <p className="label" style={{ marginTop: 14 }}>
-              Billy
-            </p>
-            <div className="field" style={{ marginTop: 6 }}>
-              <span className="label">Habileté des compagnons</span>
-              <Stepper
-                value={combat.companions}
-                onChange={v => act('Compagnons', w => ({ ...w, combat: { ...w.combat, companions: v } }))}
-                label="Habileté des compagnons"
-                min={0}
-              />
-            </div>
-            <ModsEditor mods={combat.mods} onChange={m => act('Modificateurs', w => ({ ...w, combat: { ...w.combat, mods: m } }))} />
+            <h3 className="heading" style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid var(--rule)' }}>
+              Billy : modificateurs
+            </h3>
+            <ModsEditor
+              mods={combat.mods}
+              onChange={m => act('Modificateurs', w => ({ ...w, combat: { ...w.combat, mods: m } }))}
+              extra={
+                <Field label="Compagnons">
+                  <Stepper
+                    value={combat.companions}
+                    onChange={v => act('Compagnons', w => ({ ...w, combat: { ...w.combat, companions: v } }))}
+                    label="Habileté des compagnons"
+                    min={0}
+                  />
+                </Field>
+              }
+            />
           </details>
         )}
       </div>
 
       {quitting && (
         <Confirm
-          title="Abandonner le combat ?"
-          message="Les PV et la chance perdus pendant le combat restent perdus. Le combat ne sera pas résolu."
-          action="Abandonner"
-          onConfirm={() => end('Combat abandonné')}
+          title="Annuler le combat ?"
+          message="Les PV et la chance reviennent à leur valeur d'avant le combat."
+          action="Annuler le combat"
+          onConfirm={cancel}
           onClose={() => setQuitting(false)}
         />
       )}
