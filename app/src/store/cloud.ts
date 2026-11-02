@@ -39,8 +39,8 @@ export function useCloud() {
 }
 
 const localSave = (): Save => {
-  const { games, achievements, deleted } = useStore.getState();
-  return { games, achievements, deleted };
+  const { games, achievements, deleted, achievementsAt } = useStore.getState();
+  return { games, achievements, deleted, achievementsAt };
 };
 
 let applying = false;
@@ -93,7 +93,14 @@ export function startSync() {
     if (document.visibilityState === 'visible') schedule(0);
   });
   useStore.subscribe((s, prev) => {
-    if (!applying && (s.games !== prev.games || s.achievements !== prev.achievements || s.deleted !== prev.deleted)) schedule();
+    if (
+      !applying &&
+      (s.games !== prev.games ||
+        s.achievements !== prev.achievements ||
+        s.deleted !== prev.deleted ||
+        s.achievementsAt !== prev.achievementsAt)
+    )
+      schedule();
   });
 }
 

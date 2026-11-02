@@ -6,6 +6,8 @@ export interface Save {
   achievements: Record<string, Unlocked>;
   /** Parties supprimées : identifiant → date ISO de suppression. */
   deleted: Record<string, string>;
+  /** Dernier changement de chaque succès (obtenu, redaté ou retiré) : « livre/succès » → date ISO. */
+  achievementsAt: Record<string, string>;
 }
 
 export const isGame = (g: unknown): g is Game => {
@@ -39,11 +41,25 @@ export function mergeSave(local: Save, remote: unknown): Save {
     if (deleted[id] && deleted[id] >= g.updatedAt) delete games[id];
   }
 
-  // Comme à l'import : un succès déjà connu garde sa date.
+  // Par succès, le changement le plus récent gagne, retrait compris. Sans date connue (anciennes données) : on cumule.
+  const remoteAt = obj(r.achievementsAt);
+  const at = (k: string) => (typeof remoteAt[k] === 'string' ? (remoteAt[k] as string) : '');
   const achievements = { ...local.achievements };
   for (const [bookId, unlocked] of Object.entries(obj(r.achievements))) {
-    achievements[bookId] = { ...validUnlocked(unlocked), ...achievements[bookId] };
+    const mine = local.achievements[bookId] ?? {};
+    const theirs = validUnlocked(unlocked);
+    const merged = { ...theirs, ...mine };
+    for (const id of Object.keys(merged)) {
+      const tl = local.achievementsAt[`${bookId}/${id}`] ?? '';
+      const tr = at(`${bookId}/${id}`);
+      const winner = tr > tl ? theirs : tl > tr ? mine : merged;
+      if (id in winner) merged[id] = winner[id];
+      else delete merged[id];
+    }
+    achievements[bookId] = merged;
   }
+  const achievementsAt = { ...local.achievementsAt };
+  for (const k of Object.keys(remoteAt)) if (at(k) > (achievementsAt[k] ?? '')) achievementsAt[k] = at(k);
 
-  return { games, achievements, deleted };
+  return { games, achievements, deleted, achievementsAt };
 }

@@ -52,6 +52,7 @@ interface State {
   achievements: Record<string, Unlocked>;
   /** Parties supprimées, pour que la synchro ne les fasse pas revenir. */
   deleted: Record<string, string>;
+  achievementsAt: Record<string, string>;
   settings: Settings;
   undo: UndoEntry[];
   toast?: { id: number; message: string; undoable: boolean };
@@ -74,6 +75,16 @@ interface State {
 }
 
 const UNDO_LIMIT = 40;
+
+/** Date les succès d'un livre qui diffèrent entre deux états, pour que la synchro sache lequel est le plus récent. */
+function stampChanges(at: Record<string, string>, bookId: string, before: Unlocked, after: Unlocked): Record<string, string> {
+  const now = new Date().toISOString();
+  const next = { ...at };
+  for (const id of new Set([...Object.keys(before), ...Object.keys(after)])) {
+    if (before[id] !== after[id]) next[`${bookId}/${id}`] = now;
+  }
+  return next;
+}
 let toastSeq = 0;
 
 export const newId = () => crypto.randomUUID();
@@ -84,6 +95,7 @@ export const useStore = create<State>()(
       games: {},
       achievements: {},
       deleted: {},
+      achievementsAt: {},
       settings: { theme: 'system', diceMode: 'virtual', vibrate: true },
       undo: [],
 
@@ -145,6 +157,7 @@ export const useStore = create<State>()(
           const { bookId, snapshot } = entry.achievements;
           set(s => ({
             achievements: { ...s.achievements, [bookId]: snapshot },
+            achievementsAt: stampChanges(s.achievementsAt, bookId, s.achievements[bookId] ?? {}, snapshot),
             undo: s.undo.slice(0, -1),
             toast: { id: ++toastSeq, message: `Annulé : ${entry.label}`, undoable: false },
           }));
@@ -171,6 +184,7 @@ export const useStore = create<State>()(
         else delete next[id];
         set(s => ({
           achievements: { ...s.achievements, [bookId]: next },
+          achievementsAt: stampChanges(s.achievementsAt, bookId, previous, next),
           undo: [...s.undo, { gameId: '', label, snapshot: null, achievements: { bookId, snapshot: previous } }].slice(-UNDO_LIMIT),
           toast: { id: ++toastSeq, message: label, undoable: true },
         }));
@@ -180,10 +194,13 @@ export const useStore = create<State>()(
       importAchievements: imported =>
         set(s => {
           const achievements = { ...s.achievements };
+          let achievementsAt = s.achievementsAt;
           for (const [bookId, unlocked] of Object.entries(imported ?? {})) {
-            achievements[bookId] = { ...validUnlocked(unlocked), ...achievements[bookId] };
+            const previous = achievements[bookId] ?? {};
+            achievements[bookId] = { ...validUnlocked(unlocked), ...previous };
+            achievementsAt = stampChanges(achievementsAt, bookId, previous, achievements[bookId]);
           }
-          return { achievements };
+          return { achievements, achievementsAt };
         }),
 
       setSettings: settings => set(s => ({ settings: { ...s.settings, ...settings } })),
@@ -200,7 +217,7 @@ export const useStore = create<State>()(
         return valid.length;
       },
 
-      applySync: ({ games, achievements, deleted }) => set({ games, achievements, deleted }),
+      applySync: ({ games, achievements, deleted, achievementsAt }) => set({ games, achievements, deleted, achievementsAt }),
     }),
     {
       name: 'billyhelper',
@@ -210,6 +227,7 @@ export const useStore = create<State>()(
         lastGameId: s.lastGameId,
         achievements: s.achievements,
         deleted: s.deleted,
+        achievementsAt: s.achievementsAt,
         settings: s.settings,
         undo: s.undo.slice(-10),
       }),
