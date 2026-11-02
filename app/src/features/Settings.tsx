@@ -43,7 +43,7 @@ export function Settings() {
     });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `billyhelper-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `compagnon-de-billy-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
   };
@@ -62,7 +62,7 @@ export function Settings() {
             : 'Aucune partie valide dans ce fichier',
       );
     } catch {
-      showToast('Fichier illisible : choisissez un export BillyHelper (.json)');
+      showToast('Fichier illisible : choisissez un export du Compagnon de Billy (.json)');
     }
   };
 
