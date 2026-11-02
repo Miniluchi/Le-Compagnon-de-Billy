@@ -109,9 +109,7 @@ function CombatSetup({ game }: { game: Game }) {
           </Frame>
 
           <details className="frame">
-            <summary className="label" style={{ minHeight: 32, cursor: 'pointer' }}>
-              Modificateurs du chapitre (surnombre…)
-            </summary>
+            <summary className="label">Modificateurs du chapitre (surnombre…)</summary>
             <ModsEditor mods={mods} onChange={setMods} />
           </details>
 
@@ -356,9 +354,7 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
 
         {combat.log.length > 0 && (
           <details className="frame log">
-            <summary className="label" style={{ minHeight: 32, cursor: 'pointer' }}>
-              Journal du combat ({combat.log.length} tours)
-            </summary>
+            <summary className="label">Journal du combat ({combat.log.length} tours)</summary>
             <ol className="list" style={{ marginTop: 6 }}>
               {[...combat.log].reverse().map((l, i) => (
                 <li key={i}>
@@ -376,9 +372,7 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
 
         {!over && (
           <details className="frame">
-            <summary className="label" style={{ minHeight: 32, cursor: 'pointer' }}>
-              Ajuster les stats (Billy et adversaire)
-            </summary>
+            <summary className="label">Ajuster les stats (Billy et adversaire)</summary>
             <h3 className="heading" style={{ marginTop: 14 }}>
               Adversaire : {foe.name}
             </h3>

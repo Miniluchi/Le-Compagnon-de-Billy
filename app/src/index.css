@@ -902,6 +902,12 @@ details > summary {
   list-style-position: inside;
 }
 
+/* Hauteur par line-height plutôt que min-height : le texte et le triangle restent centrés. */
+details.frame > summary {
+  line-height: 32px;
+  cursor: pointer;
+}
+
 /* ---------- Table des situations ---------- */
 
 .situation-table {
