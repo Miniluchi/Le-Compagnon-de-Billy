@@ -275,7 +275,7 @@ function applyDomination(ctx: CombatCtx, combat: CombatState): CombatState {
       return {
         ...c,
         phase: 'lost',
-        notice: `Domination adverse : ${currentFoe(c).name} vous a aplati avant que vous ayez fini de dégainer. On retrouvera vos bottes.`,
+        notice: `Domination adverse : ${currentFoe(c).name} vous regarde, hausse les épaules, et éternue. Billy n'y a pas survécu.`,
       };
     } else break;
   }
