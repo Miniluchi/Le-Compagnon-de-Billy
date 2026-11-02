@@ -3,10 +3,11 @@ import { useStore, type Game } from './store';
 import { mergeSave, type Save } from './sync';
 
 const game = (id: string, updatedAt: string, name = id) => ({ id, bookId: 'fcdn', name, items: [], updatedAt }) as unknown as Game;
-const save = (games: Game[] = [], deleted: Record<string, string> = {}, achievements = {}): Save => ({
+const save = (games: Game[] = [], deleted: Record<string, string> = {}, achievements = {}, achievementsAt = {}): Save => ({
   games: Object.fromEntries(games.map(g => [g.id, g])),
   deleted,
   achievements,
+  achievementsAt,
 });
 
 describe('Fusion de sauvegarde', () => {
@@ -37,8 +38,30 @@ describe('Fusion de sauvegarde', () => {
     useStore.getState().update('a', 'Combat commencé', g => ({ ...g, combat: {} as Game['combat'] }));
     const remote = save(Object.values(useStore.getState().games));
     useStore.getState().undoLast();
-    const { games, achievements, deleted } = useStore.getState();
-    expect(mergeSave({ games, achievements, deleted }, remote).games.a.combat).toBeUndefined();
+    const { games, achievements, deleted, achievementsAt } = useStore.getState();
+    expect(mergeSave({ games, achievements, deleted, achievementsAt }, remote).games.a.combat).toBeUndefined();
+  });
+
+  it('un retrait de succès plus récent gagne, une obtention plus récente aussi', () => {
+    const remote = save([], {}, { fcdn: { x: '2026-01-01' } }, { 'fcdn/x': '2026-01-01T10:00' });
+    expect(mergeSave(save([], {}, { fcdn: {} }, { 'fcdn/x': '2026-01-02T10:00' }), remote).achievements.fcdn).toEqual({});
+    const removedRemotely = save([], {}, { fcdn: {} }, { 'fcdn/x': '2026-01-03T10:00' });
+    expect(
+      mergeSave(save([], {}, { fcdn: { x: '2026-01-01' } }, { 'fcdn/x': '2026-01-01T10:00' }), removedRemotely).achievements.fcdn,
+    ).toEqual({});
+    const reUnlocked = mergeSave(save([], {}, { fcdn: { x: '2026-01-05' } }, { 'fcdn/x': '2026-01-05T10:00' }), removedRemotely);
+    expect(reUnlocked.achievements.fcdn).toEqual({ x: '2026-01-05' });
+    expect(reUnlocked.achievementsAt['fcdn/x']).toBe('2026-01-05T10:00');
+  });
+
+  it('setAchievement date chaque changement, retrait compris', () => {
+    useStore.setState({ achievements: { fcdn: {} }, achievementsAt: {} });
+    useStore.getState().setAchievement('fcdn', 'x', '2026-01-01', 'obtenu');
+    const unlockedAt = useStore.getState().achievementsAt['fcdn/x'];
+    useStore.getState().setAchievement('fcdn', 'x', null, 'retiré');
+    expect(useStore.getState().achievementsAt['fcdn/x'] >= unlockedAt).toBe(true);
+    useStore.getState().undoLast();
+    expect(useStore.getState().achievements.fcdn).toEqual({ x: '2026-01-01' });
   });
 
   it('ignore les données distantes invalides', () => {
