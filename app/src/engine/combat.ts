@@ -88,6 +88,10 @@ export interface CombatState {
   notice?: string;
   last?: RoundLog;
   log: RoundLog[];
+  /** État juste avant le jet d'attaque du tour en cours, pour « Recommencer ce tour ». */
+  roundStart?: { combat: CombatState; pv: number; chance: number };
+  /** PV et chance de Billy avant le combat, rendus si on l'annule. */
+  before?: { pv: number; chance: number };
 }
 
 /** État partagé avec la partie : le combat modifie les PV et la CHANCE de Billy. */
@@ -291,6 +295,7 @@ function needsDecision(ctx: CombatCtx, world: CombatWorld): boolean {
 export function rollAttack(ctx: CombatCtx, world: CombatWorld, die: DieFace): CombatWorld {
   const combat: CombatState = {
     ...world.combat,
+    roundStart: { combat: { ...world.combat, roundStart: undefined }, pv: world.pv, chance: world.chance },
     attackDie: die,
     rerolledFrom: undefined,
     dodgeDie: undefined,
@@ -414,6 +419,11 @@ export function nextRound(world: CombatWorld): CombatWorld {
       lucky: undefined,
     },
   };
+}
+
+export function restartRound(world: CombatWorld): CombatWorld {
+  const start = world.combat.roundStart;
+  return start ? { pv: start.pv, chance: start.chance, combat: start.combat } : world;
 }
 
 export function canFlee(ctx: CombatCtx, world: CombatWorld): boolean {
