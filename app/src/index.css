@@ -1027,7 +1027,7 @@ details.rule ol {
   position: fixed;
   left: 50%;
   translate: -50% 0;
-  bottom: calc(var(--bar-h) + 16px + env(safe-area-inset-bottom));
+  top: calc(12px + env(safe-area-inset-top));
   z-index: 60;
   width: calc(100% - 2 * var(--gutter));
   max-width: 488px;
