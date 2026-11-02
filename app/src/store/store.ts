@@ -155,7 +155,8 @@ export const useStore = create<State>()(
           const deleted = { ...s.deleted };
           delete deleted[entry.gameId];
           return {
-            games: { ...s.games, [entry.gameId]: entry.snapshot! },
+            // Date neuve : sinon la synchro reprend la version annulée, plus récente.
+            games: { ...s.games, [entry.gameId]: { ...entry.snapshot!, updatedAt: new Date().toISOString() } },
             deleted,
             undo: s.undo.slice(0, -1),
             toast: { id: ++toastSeq, message: `Annulé : ${entry.label}`, undoable: false },
