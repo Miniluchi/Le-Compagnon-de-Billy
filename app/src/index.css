@@ -908,6 +908,29 @@ details.frame > summary {
   cursor: pointer;
 }
 
+/* ---------- Jets ---------- */
+
+/* Même hauteur de ligne avec ou sans stepper, bouton calé en bas : les deux tuiles s'alignent côte à côte. */
+.roll-value {
+  min-height: 48px;
+  margin: 10px 0;
+}
+
+.roll-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.roll-card > :last-child {
+  margin-top: auto;
+}
+
+@media (min-width: 760px) {
+  .cols.rolls {
+    align-items: stretch;
+  }
+}
+
 /* ---------- Table des situations ---------- */
 
 .situation-table {

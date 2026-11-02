@@ -29,10 +29,10 @@ export function Rolls({ game }: { game: Game }) {
   };
 
   return (
-    <div className="cols">
-      <Frame title="Jet d'adresse">
+    <div className="cols rolls">
+      <Frame title="Jet d'adresse" className="roll-card">
         <p className="small muted">Réussi si le dé est inférieur ou égal à votre adresse. Ne coûte rien.</p>
-        <div className="row spread" style={{ margin: '10px 0' }}>
+        <div className="row spread roll-value">
           <span>
             Adresse{' '}
             <strong className="figure" style={{ fontSize: 30 }}>
@@ -43,7 +43,9 @@ export function Rolls({ game }: { game: Game }) {
             <Stepper value={mod} onChange={setMod} label="Modificateur du chapitre" min={-6} max={6} />
           </div>
         </div>
-        <p className="small muted">Modificateur demandé par le chapitre, s'il y en a un.</p>
+        <p className="small muted" style={{ marginBottom: 12 }}>
+          Modificateur demandé par le chapitre, s'il y en a un.
+        </p>
         <Result outcome={adr} />
         <DiceRoller
           label="Lancer le jet d'adresse"
@@ -51,16 +53,18 @@ export function Rolls({ game }: { game: Game }) {
         />
       </Frame>
 
-      <Frame title="Jet de chance">
+      <Frame title="Jet de chance" className="roll-card">
         <p className="small muted">
           Réussi si le dé est inférieur ou égal à votre chance actuelle. Le jet coûte 1 point de chance, réussi ou non.
         </p>
-        <p style={{ margin: '10px 0' }}>
-          Chance{' '}
-          <strong className="figure" style={{ fontSize: 30 }}>
-            {game.chance}
-          </strong>
-          {game.chance >= 6 && <span className="small muted">, réussite assurée</span>}
+        <p className="row roll-value">
+          <span>
+            Chance{' '}
+            <strong className="figure" style={{ fontSize: 30 }}>
+              {game.chance}
+            </strong>
+            {game.chance >= 6 && <span className="small muted">, réussite assurée</span>}
+          </span>
         </p>
         <Result outcome={cha} />
         {game.chance > 0 ? (
