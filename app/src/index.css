@@ -1039,7 +1039,14 @@ details.rule ol {
   color: var(--paper);
   border-radius: var(--radius-sm);
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
-  animation: rise 240ms var(--ease);
+  animation: drop 240ms var(--ease);
+}
+
+@keyframes drop {
+  from {
+    transform: translateY(-24px);
+    opacity: 0;
+  }
 }
 
 .toast span {
@@ -1395,7 +1402,6 @@ details.rule ol {
   }
 
   .toast {
-    bottom: 24px;
     max-width: 440px;
   }
 
