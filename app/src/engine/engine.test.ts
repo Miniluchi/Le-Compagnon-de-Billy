@@ -8,6 +8,7 @@ import {
   nextRound,
   reroll,
   resolveRound,
+  restartRound,
   rollAttack,
   rollDodge,
   startCombat,
@@ -233,6 +234,18 @@ describe('déroulé du combat', () => {
     expect(after.combat.phase).toBe('summary');
     expect(after.pv).toBe(17);
     expect(after.combat.foePv).toBe(7);
+  });
+
+  it('recommencer le tour rend PV, chance et dés d’avant le jet', () => {
+    const [ctx, w] = world(fighter({ character: 'PRUDENT' }), [foe()]);
+    const round2 = nextRound(continueRound(ctx, rollAttack(ctx, w, 3)));
+    const played = continueRound(ctx, luckyStrike(ctx, rollAttack(ctx, round2, 3), 6));
+    expect(played.pv).toBeLessThan(round2.pv);
+    expect(played.chance).toBe(round2.chance - 1);
+    const back = restartRound(played);
+    expect(back).toEqual({ ...round2, combat: { ...round2.combat, roundStart: undefined } });
+    expect(back.combat.phase).toBe('attack');
+    expect(back.combat.round).toBe(2);
   });
 
   it('avec ADR ≥ 2 : attaque puis esquive', () => {
