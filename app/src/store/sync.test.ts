@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Game } from './store';
+import { useStore, type Game } from './store';
 import { mergeSave, type Save } from './sync';
 
 const game = (id: string, updatedAt: string, name = id) => ({ id, bookId: 'fcdn', name, items: [], updatedAt }) as unknown as Game;
@@ -30,6 +30,15 @@ describe('Fusion de sauvegarde', () => {
   it('cumule les succès en gardant la date déjà connue', () => {
     const m = mergeSave(save([], {}, { fcdn: { x: '2026-01-01' } }), save([], {}, { fcdn: { x: '2025-01-01', y: '2026-05-05' } }));
     expect(m.achievements.fcdn).toEqual({ x: '2026-01-01', y: '2026-05-05' });
+  });
+
+  it("une annulation n'est pas écrasée par la version distante annulée", () => {
+    useStore.setState({ games: { a: game('a', '2020-01-01') }, undo: [] });
+    useStore.getState().update('a', 'Combat commencé', g => ({ ...g, combat: {} as Game['combat'] }));
+    const remote = save(Object.values(useStore.getState().games));
+    useStore.getState().undoLast();
+    const { games, achievements, deleted } = useStore.getState();
+    expect(mergeSave({ games, achievements, deleted }, remote).games.a.combat).toBeUndefined();
   });
 
   it('ignore les données distantes invalides', () => {
