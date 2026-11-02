@@ -16,9 +16,10 @@ export function Adventure({ game }: { game: Game }) {
   const [pad, setPad] = useState<PadMode | null>(null);
   const hasKit = billy.hasRule('soin-double');
 
-  const setPv = (pv: number, label: string) => update(game.id, label, g => ({ ...g, pv: Math.max(0, Math.min(pvMax, pv)) }));
+  const setPv = (pv: number, label: string) =>
+    update(game.id, label, g => ({ ...g, pv: Math.max(0, Math.min(pvMax, pv)) }), { toast: false });
   const setChance = (chance: number, label: string) =>
-    update(game.id, label, g => ({ ...g, chance: Math.max(0, Math.min(chanceMax, chance)) }));
+    update(game.id, label, g => ({ ...g, chance: Math.max(0, Math.min(chanceMax, chance)) }), { toast: false });
   const goToChapter = (n: number) =>
     update(game.id, `Chapitre ${n}`, g => ({ ...g, chapters: [n, ...g.chapters].slice(0, 200), chapterDone: false }), { toast: false });
 
@@ -124,7 +125,8 @@ export function Adventure({ game }: { game: Game }) {
           <div className="counters">
             {book.counters.map(c => {
               const value = game.counters[c.id] ?? 0;
-              const set = (v: number) => update(game.id, `${c.label} : ${v}`, g => ({ ...g, counters: { ...g.counters, [c.id]: v } }));
+              const set = (v: number) =>
+                update(game.id, `${c.label} : ${v}`, g => ({ ...g, counters: { ...g.counters, [c.id]: v } }), { toast: false });
               return (
                 <Frame key={c.id} title={c.label}>
                   <Stepper value={value} onChange={set} label={c.label} min={0} />

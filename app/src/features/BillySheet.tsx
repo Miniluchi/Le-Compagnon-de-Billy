@@ -154,10 +154,15 @@ function BonusSheet({ game, initial, onClose }: { game: Game; initial: StatKey; 
   const save = () => {
     if (!value) return;
     // Les réserves (PV, CHANCE) ne bougent pas : le livre précise s'il faut aussi les remplir.
-    update(game.id, `${signed(value)} ${STAT_LABELS[stat]}`, g => ({
-      ...g,
-      bonuses: [...g.bonuses, { id: newId(), stat, value, reason: reason.trim() || undefined, at: new Date().toISOString() }],
-    }));
+    update(
+      game.id,
+      `${signed(value)} ${STAT_LABELS[stat]}`,
+      g => ({
+        ...g,
+        bonuses: [...g.bonuses, { id: newId(), stat, value, reason: reason.trim() || undefined, at: new Date().toISOString() }],
+      }),
+      { toast: false },
+    );
     onClose();
   };
 

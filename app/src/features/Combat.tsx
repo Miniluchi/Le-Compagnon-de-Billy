@@ -208,7 +208,7 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
       { toast: false },
     );
 
-  const end = (label: string) => update(game.id, label, g => ({ ...g, combat: undefined }));
+  const end = (label: string) => update(game.id, label, g => ({ ...g, combat: undefined }), { toast: false });
 
   const setPv = (pv: number) => update(game.id, 'PV ajustés', g => ({ ...g, pv: Math.max(0, Math.min(pvMax, pv)) }), { toast: false });
   const setFoe = (patch: Partial<Foe>) =>
