@@ -1,9 +1,9 @@
-# BillyHelper
+# Le Compagnon de Billy
 
 Compagnon de lecture pour les livres de Bob Lennon : _Les aventures du Pyro-Barbare et de Billy_ :
 feuille de personnage, dés, assistant de combat et succès, sur téléphone comme sur ordinateur.
 
-**Application en ligne : https://miniluchi.github.io/BillyHelper/**
+**Application en ligne : https://miniluchi.github.io/Le-Compagnon-de-Billy/**
 
 Il faut le livre pour jouer : l'application ne contient aucun texte des chapitres.
 
