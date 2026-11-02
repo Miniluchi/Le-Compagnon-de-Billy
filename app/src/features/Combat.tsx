@@ -313,13 +313,13 @@ function ActiveCombat({ game, combat }: { game: Game; combat: CombatState }) {
               <p className={`verdict ${combat.phase === 'lost' ? 'ko' : 'ok'}`}>
                 {combat.phase === 'won' ? 'Victoire' : combat.phase === 'fled' ? 'Combat évité' : 'Billy est mort'}
               </p>
-              <p className="small muted" style={{ textAlign: 'center' }}>
-                {combat.phase === 'won'
-                  ? `Il vous reste ${game.pv}/${pvMax} PV. Visez la bouche, juste pour être sûr.`
-                  : combat.phase === 'fled'
-                    ? `Il vous reste ${game.chance}/${chanceMax} points de chance.`
-                    : 'Vous pouvez annuler la dernière action si vous vous êtes trompé.'}
-              </p>
+              {combat.phase !== 'lost' && (
+                <p className="small muted" style={{ textAlign: 'center' }}>
+                  {combat.phase === 'won'
+                    ? `Il vous reste ${game.pv}/${pvMax} PV. Visez la bouche, juste pour être sûr.`
+                    : `Il vous reste ${game.chance}/${chanceMax} points de chance.`}
+                </p>
+              )}
               <div className="stack" style={{ marginTop: 12 }}>
                 <button
                   type="button"
